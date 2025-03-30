@@ -38,7 +38,7 @@ class TurboTalkStyleTransfer:
             ],
             "Artistic Techniques": [
                 "Watercolor Dream", "Oil Painting Essence", 
-                "Feathers", "Wave", "Candy"
+                "Feathers", "Wave", "Candy", "Ghibli Art Style"
             ]
         }
         
@@ -57,7 +57,8 @@ class TurboTalkStyleTransfer:
             "Oil Painting Essence": "images/oil_paints.jpg",
             "Feathers": "images/feathers.jpg",
             "Wave": "images/wave.jpg",
-            "Candy": "images/candy.jpg"
+            "Candy": "images/candy.jpg",
+            "Ghibli Art Style": "images/ghibli.jpg"
         }
 
     def _initialize_model(self):
