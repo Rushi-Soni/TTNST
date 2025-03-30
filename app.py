@@ -58,7 +58,7 @@ class TurboTalkStyleTransfer:
             "Feathers": "images/feathers.jpg",
             "Wave": "images/wave.jpg",
             "Candy": "images/candy.jpg",
-            "Ghibli Art Style": "images/ghibli.jpg"
+            "Ghibli Art Style": "images/Ghibli.jpg"
         }
 
     def _initialize_model(self):
