@@ -7,12 +7,13 @@ import cv2
 import requests
 import io
 from PIL import Image
+from transformers import pipeline
 
 class TurboTalkStyleTransfer:
     def __init__(self):
         self._configure_environment()
         self._load_style_resources()
-        self._initialize_model()
+        self._initialize_models()
 
     def _configure_environment(self):
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -61,12 +62,14 @@ class TurboTalkStyleTransfer:
             "Ghibli Art Style": "images/Ghibli.jpg"
         }
 
-    def _initialize_model(self):
+    def _initialize_models(self):
         try:
-            self.model = hub.load('https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2')
+            self.model1 = hub.load('https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2')
+            self.stability_model = pipeline("image-to-image", model="CompVis/stable-diffusion-v1-4")
         except Exception as model_err:
             st.error(f"Model Loading Failed: {model_err}")
-            self.model = None
+            self.model1 = None
+            self.stability_model = None
             st.warning("Please check your internet connection or model availability.")
 
     def load_image(self, img_path_or_url):
@@ -102,19 +105,26 @@ class TurboTalkStyleTransfer:
             if enhance_details:
                 content_img = tf.image.adjust_contrast(content_img, 1.5)
             
-            # Process images for style transfer
+            # Resize images for style transfer
             style_img_resized = tf.image.resize(style_img, [256, 256])
             content_img_resized = tf.image.resize(content_img, [256, 256])
             
-            # Apply style transfer
-            stylized_image = self.model(content_img_resized, style_img_resized)[0]
+            # Apply style transfer using the first model
+            stylized_image1 = self.model1(content_img_resized, style_img_resized)[0]
+            
+            # Convert the first stylized image to uint8 format for the second model
+            stylized_image1 = tf.image.convert_image_dtype(stylized_image1, tf.uint8)
+            stylized_image1_pil = Image.fromarray(stylized_image1.numpy()[0])
+            
+            # Apply style transfer using the second model (Transformers)
+            stylized_image2 = self.stability_model(images=stylized_image1_pil, style_images=style_img.numpy()[0])
             
             # Resize back to original dimensions
-            stylized_image = tf.image.resize(stylized_image, original_shape)
+            stylized_image2 = tf.image.resize(stylized_image2, original_shape)
             content_img_original = tf.image.resize(content_img, original_shape)
             
             # Apply intensity blending
-            final_img = content_img_original[0] * (1 - intensity) + stylized_image * intensity
+            final_img = content_img_original[0] * (1 - intensity) + stylized_image2 * intensity
             final_img = tf.clip_by_value(final_img, 0.0, 1.0)
             final_img = tf.image.convert_image_dtype(final_img, tf.uint8)
             
